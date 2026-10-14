@@ -6,7 +6,7 @@
   <title>Leilão dos Brasileiros | Catálogo de oportunidades em leilões</title>
   <meta name="description" content="Catálogo de oportunidades em leilões de imóveis, veículos, motocicletas, máquinas e outros bens. Pesquise, consulte os detalhes e fale pelo WhatsApp.">
   <meta name="theme-color" content="#0b2545">
-  <link rel="canonical" href="https://distribuidora24h.github.io/leilaodosbrasileiros/">
+  <link rel="canonical" href="https://distribuidora24h.github.io/leilaobrteste/">
 
   <!-- Compartilhamento social. As URLs de og:url e og:image precisam ser absolutas;
        se o endereço do site mudar, atualize-as junto com o canonical acima. -->
@@ -15,8 +15,8 @@
   <meta property="og:site_name" content="Leilão dos Brasileiros">
   <meta property="og:title" content="Leilão dos Brasileiros | Oportunidades que merecem sua atenção">
   <meta property="og:description" content="Catálogo organizado de oportunidades em leilões, com atendimento direto pelo WhatsApp.">
-  <meta property="og:url" content="https://distribuidora24h.github.io/leilaodosbrasileiros/">
-  <meta property="og:image" content="https://distribuidora24h.github.io/leilaodosbrasileiros/images/og-image.jpg">
+  <meta property="og:url" content="https://distribuidora24h.github.io/leilaobrteste/">
+  <meta property="og:image" content="https://distribuidora24h.github.io/leilaobrteste/images/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
@@ -32,8 +32,8 @@
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Leilão dos Brasileiros",
-    "url": "https://distribuidora24h.github.io/leilaodosbrasileiros/",
-    "logo": "https://distribuidora24h.github.io/leilaodosbrasileiros/images/logo.svg"
+    "url": "https://distribuidora24h.github.io/leilaobrteste/",
+    "logo": "https://distribuidora24h.github.io/leilaobrteste/images/logo.svg"
   }
   </script>
 </head>
@@ -86,6 +86,10 @@
           <li><a href="#contato">Contato</a></li>
         </ul>
         <a class="btn btn-primary nav-cta" href="#catalogo">Explorar lotes</a>
+        <a class="btn btn-whatsapp nav-wa" data-contact="general" href="https://wa.me/557199837389" aria-label="Falar pelo WhatsApp (abre uma nova aba)" title="Falar pelo WhatsApp">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-whatsapp"/></svg>
+          <span class="nav-wa-text">Falar pelo WhatsApp</span>
+        </a>
       </nav>
 
       <button type="button" class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menu">
@@ -112,6 +116,10 @@
           <div class="hero-actions">
             <a class="btn btn-gold" href="#catalogo">Explorar lotes</a>
             <a class="btn btn-outline-light" href="#como-funciona">Como funciona</a>
+            <a class="btn btn-whatsapp" data-contact="general" href="https://wa.me/557199837389">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-whatsapp"/></svg>
+              Falar com um atendente
+            </a>
           </div>
 
           <p class="hero-note">Regras, taxas e documentação variam conforme o lote e o edital correspondente.</p>
@@ -214,20 +222,35 @@
 
         <p class="result-count" id="result-count" role="status" aria-live="polite"></p>
 
+        <!-- Aparece quando uma categoria está selecionada -->
+        <p class="category-help" id="category-help" hidden>
+          <span>Quer ajuda para encontrar lotes em <strong id="category-help-text"></strong>?</span>
+          <a class="btn btn-whatsapp btn-sm" id="category-help-link" href="https://wa.me/557199837389">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-whatsapp"/></svg>
+            Falar pelo WhatsApp
+          </a>
+        </p>
+
         <div class="lot-grid" id="lot-grid"></div>
 
         <!-- Pesquisa/filtro sem resultados -->
         <div class="empty-state" id="empty-results" hidden>
           <h3>Nenhum lote encontrado</h3>
           <p>Não há lotes para essa combinação de pesquisa e filtros. Tente outro termo ou remova algum filtro.</p>
-          <button type="button" class="btn btn-primary" id="empty-clear">Limpar filtros</button>
+          <div class="empty-actions">
+            <button type="button" class="btn btn-primary" id="empty-clear">Limpar filtros</button>
+            <a class="btn btn-whatsapp" data-contact="general" href="https://wa.me/557199837389">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-whatsapp"/></svg>
+              Pedir ajuda pelo WhatsApp
+            </a>
+          </div>
         </div>
 
         <!-- Catálogo sem nenhum lote cadastrado -->
         <div class="empty-state" id="empty-catalog" hidden>
           <h3>Os lotes ainda não foram publicados</h3>
           <p>Estamos preparando o catálogo. Enquanto isso, fale com o atendimento para saber sobre as oportunidades disponíveis.</p>
-          <button type="button" class="btn btn-whatsapp" data-contact="general">Falar pelo WhatsApp</button>
+          <a class="btn btn-whatsapp" data-contact="general" href="https://wa.me/557199837389">Falar pelo WhatsApp</a>
         </div>
       </div>
     </section>
@@ -344,7 +367,7 @@
           <details name="faq">
             <summary>Como falar com o atendimento?</summary>
             <div class="faq-answer">
-              <p>Pelo botão de WhatsApp em cada lote ou na seção de contato. A mensagem já vai preenchida com o número e o título do lote para agilizar a conversa.</p>
+              <p>Pelo botão de WhatsApp em cada lote ou na seção de contato. A mensagem já vai preenchida com o nome e o código do lote para agilizar a conversa. O WhatsApp apenas abre a conversa: você revisa o texto e decide se envia.</p>
             </div>
           </details>
         </div>
@@ -358,10 +381,11 @@
           <h2 id="titulo-contato">Fale com o atendimento</h2>
           <p>Tire dúvidas sobre um lote, peça o edital ou entenda os próximos passos. Se você já escolheu um lote, use o botão de WhatsApp no próprio card para enviar a identificação dele.</p>
 
-          <button type="button" class="btn btn-whatsapp" id="contact-whatsapp" data-contact="general">
+          <a class="btn btn-whatsapp" id="contact-whatsapp" data-contact="general" href="https://wa.me/557199837389">
             <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-whatsapp"/></svg>
             Falar pelo WhatsApp
-          </button>
+          </a>
+          <p class="wa-note">Ao clicar, o WhatsApp será aberto com uma mensagem pronta para você revisar e enviar. Nada é enviado automaticamente.</p>
           <p class="contact-status" id="contact-status" hidden></p>
 
           <!-- Preenchido pelo script.js a partir de CONTACT: só aparecem os canais informados. -->
@@ -442,15 +466,31 @@
             <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>
             Abrir edital e documentos
           </a>
-          <p class="dialog-doc-note" id="dialog-doc-note" hidden>Edital e documentos: solicite pelo atendimento.</p>
-          <button type="button" class="btn btn-whatsapp" id="dialog-contact">
+          <a class="btn btn-whatsapp" id="dialog-contact" href="https://wa.me/557199837389">
             <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-whatsapp"/></svg>
             Consultar este lote pelo WhatsApp
-          </button>
+          </a>
+          <div class="dialog-secondary">
+            <a class="btn btn-outline" id="dialog-edital" href="https://wa.me/557199837389">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-file"/></svg>
+              Solicitar o edital
+            </a>
+            <a class="btn btn-outline" id="dialog-visit" href="https://wa.me/557199837389">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-clock"/></svg>
+              Perguntar sobre visitação
+            </a>
+          </div>
+          <p class="wa-note">Ao clicar, o WhatsApp será aberto com uma mensagem pronta para você revisar e enviar. Nada é enviado automaticamente.</p>
         </div>
       </div>
     </div>
   </dialog>
+
+  <!-- Botão flutuante de WhatsApp (computador e celular) -->
+  <a class="wa-float" data-contact="general" href="https://wa.me/557199837389" aria-label="Falar pelo WhatsApp (abre uma nova aba)">
+    <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-whatsapp"/></svg>
+    <span class="wa-float-text">WhatsApp</span>
+  </a>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </body>

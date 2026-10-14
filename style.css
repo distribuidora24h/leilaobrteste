@@ -754,9 +754,41 @@ button, input, select { font: inherit; }
 .dialog-details[hidden] { display: none; }
 .dialog-details dd { margin-top: 2px; font-size: 0.9375rem; font-weight: 600; }
 .dialog-demo { margin-top: var(--space-4); padding: 10px 12px; font-size: 0.8125rem; color: var(--navy-900); background: #fff3d6; border: 1px solid #ecd9a3; border-radius: var(--radius); }
-.dialog-demo[hidden], .dialog-doc-note[hidden], #dialog-document[hidden] { display: none; }
+.dialog-demo[hidden], #dialog-document[hidden], #dialog-edital[hidden], .category-help[hidden] { display: none; }
 .dialog-actions { display: grid; gap: var(--space-3); margin-top: auto; padding-top: var(--space-5); }
-.dialog-doc-note { font-size: 0.8125rem; color: var(--muted); }
+.dialog-secondary { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.wa-note { font-size: 0.8125rem; color: var(--muted); max-width: 52ch; }
+.contact-copy .wa-note { margin-top: var(--space-3); }
+
+/* ---------- 13b. WhatsApp: cabeçalho, categoria, vazio e botão flutuante ---------- */
+.btn-sm { min-height: 38px; padding: 8px 16px; font-size: var(--text-sm); }
+
+/* Cabeçalho: no computador só o ícone; no menu mobile, o texto completo */
+.nav-wa { width: 46px; padding: 0; flex: none; }
+.nav-wa-text {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.category-help {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3);
+  margin: 0 0 var(--space-5); padding: 12px 16px;
+  font-size: 0.9375rem; color: var(--ink);
+  background: var(--mist); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); }
+
+.wa-float {
+  position: fixed; right: 20px; bottom: 20px; z-index: 60;
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 52px; padding: 0 20px 0 16px;
+  font-size: 0.9375rem; font-weight: 600; color: var(--on-dark); text-decoration: none;
+  background: var(--whatsapp); border-radius: 999px; box-shadow: var(--shadow-md);
+  transition: background-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+.wa-float:hover { background: var(--whatsapp-hover); transform: translateY(-1px); }
+.wa-float:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.wa-float .icon { width: 24px; height: 24px; }
 
 /* ---------- 14. Responsivo ---------- */
 @media (max-width: 1080px) {
@@ -791,6 +823,8 @@ button, input, select { font: inherit; }
   .main-nav ul a { display: block; padding: 14px 2px; font-size: 1rem; border-bottom: 0; }
   .main-nav ul a[aria-current="true"] { box-shadow: inset 3px 0 0 var(--gold); padding-left: 12px; }
   .nav-cta { margin-top: var(--space-3); }
+  .nav-wa { width: 100%; margin-top: var(--space-2); padding: 10px 22px; }
+  .nav-wa-text { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; }
 
   .hero { grid-template-columns: 1fr; min-height: 0; }
   .hero-media { order: -1; min-height: 0; aspect-ratio: 16 / 9; }
@@ -842,7 +876,10 @@ button, input, select { font: inherit; }
 
   .footer-grid { grid-template-columns: 1fr; gap: var(--space-6); padding-block: 48px var(--space-6); }
   .dialog-details { grid-template-columns: 1fr; }
-  .toast { bottom: 16px; }
+  .toast { bottom: 88px; }
+  .wa-float { right: 16px; bottom: 16px; width: 56px; min-height: 56px; padding: 0; justify-content: center; }
+  .wa-float-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .dialog-secondary { grid-template-columns: 1fr; }
 }
 
 /* ---------- 15. Movimento reduzido ---------- */

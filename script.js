@@ -16,13 +16,17 @@
 
 /**
  * NÚMERO DE WHATSAPP
- * Substitua pelo número real em formato internacional, somente dígitos.
- * Exemplo (Brasil, DDD 13): '5513999999999'  →  55 + DDD + número.
- * Sem espaços, parênteses, traços ou o sinal de "+".
+ * Formato internacional, somente dígitos (55 + DDD + número), sem espaços,
+ * parênteses, traços ou o sinal de "+". Número informado pelo cliente: +55 71 99837-389.
+ * ATENÇÃO: após o DDD 71 há apenas 8 dígitos (99837389); celulares brasileiros costumam
+ * ter 9. Teste o link no celular antes de publicar. Se faltar um dígito, corrija aqui
+ * e em WHATSAPP_DISPLAY; o restante do site se atualiza sozinho.
  * Enquanto estiver vazio, o site avisa que o contato precisa ser configurado
  * e não direciona ninguém para nenhum número.
  */
-const WHATSAPP_NUMBER = '';
+const WHATSAPP_NUMBER = '557199837389';
+/** Como o número aparece escrito no site (exatamente como informado). */
+const WHATSAPP_DISPLAY = '+55 71 99837-389';
 
 const SITE_CONFIG = {
   brandName: 'Leilão dos Brasileiros',
@@ -269,13 +273,14 @@ function mediaFallback(label) {
     role: label ? 'img' : null,
     'aria-label': label || null,
     'aria-hidden': label ? null : 'true',
-    text: label || 'Imagem indisponível',
+    text: label || 'Foto a ser adicionada',
   });
 }
 
 /** Troca a <img> por um espaço reservado se o arquivo não carregar. */
 function attachFallback(img) {
-  const swap = () => img.replaceWith(mediaFallback(img.getAttribute('alt') ? `${img.getAttribute('alt')} (imagem indisponível)` : ''));
+  // Foto ausente: espaço reservado neutro, sem descrever um bem que o visitante não consegue ver.
+  const swap = () => img.replaceWith(mediaFallback(img.dataset.placeholder || (img.getAttribute('alt') ? 'Foto ainda não disponível' : '')));
   if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) swap();
   else img.addEventListener('error', swap, { once: true });
 }
@@ -294,6 +299,7 @@ function lotImage(lot, index, loading) {
     height: 900,
     loading,
     decoding: 'async',
+    'data-placeholder': 'Foto do lote ainda não disponível',
   });
   attachFallback(img);
   return img;
@@ -301,26 +307,108 @@ function lotImage(lot, index, loading) {
 
 /* --------------------------------------------------------------------------
    5. WHATSAPP
+   Toda mensagem e todo link são gerados por buildWhatsappMessage() e
+   whatsappUrl(). Os botões são links reais (<a href>), então funcionam em
+   computador e celular. Abrir o WhatsApp não garante que a mensagem seja
+   enviada: o visitante revisa e envia por conta própria.
    -------------------------------------------------------------------------- */
+
+const WHATSAPP_BASE = 'https://wa.me/';
 
 function isWhatsappConfigured() {
   return /^\d{10,15}$/.test(WHATSAPP_NUMBER);
 }
 
-/** Mensagem pré-preenchida, com identificação do lote quando houver. */
-function buildMessage(lot) {
-  if (!lot) {
-    return `Olá! Vim pelo site ${SITE_CONFIG.brandName} e gostaria de mais informações.`;
-  }
-  return (
-    `Olá! Vi o ${lot.lot} no site ${SITE_CONFIG.brandName}: ${lot.title}` +
-    ` (${categoryLabel(lot.category)}${lot.location ? `, ${lot.location}` : ''}).` +
-    ' Gostaria de mais informações e de saber como consultar o edital.'
-  );
+/** Categorias que usam o texto de imóvel e o de veículo. */
+const REAL_ESTATE_CATEGORIES = ['imoveis', 'terrenos'];
+const VEHICLE_CATEGORIES = ['carros', 'motos', 'caminhoes'];
+
+/** Endereço da página atual, sem o #fragmento (funciona em /leilaobrteste/ e em qualquer subpasta). */
+function pageUrl() {
+  return location.href.split('#')[0];
 }
 
-function whatsappUrl(lot) {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildMessage(lot))}`;
+/** Link direto para o lote (abre o modal do lote). */
+function lotUrl(lot) {
+  return `${pageUrl()}#lote-${encodeURIComponent(lot.id)}`;
+}
+
+/** Código exibido ao visitante: "Lote 001" → "001". Vazio se não houver. */
+function lotCode(lot) {
+  return String(lot.code || lot.lot || '').replace(/^lote\s*/i, '').trim();
+}
+
+/** Junta somente as partes preenchidas, para nunca enviar campos vazios. */
+function sentence(...parts) {
+  return parts.filter((part) => part && String(part).trim()).join(' ');
+}
+
+/**
+ * Monta o texto da mensagem.
+ * options.type: 'general' | 'lot' | 'edital' | 'visit' | 'category'
+ * options.lot: objeto do lote (obrigatório nos tipos de lote)
+ * options.category: id da categoria (tipo 'category')
+ * Para 'lot', o texto muda conforme a categoria (imóvel, veículo ou genérico).
+ */
+function buildWhatsappMessage(options = {}) {
+  const { type = 'general', lot = null } = options;
+  const brand = SITE_CONFIG.brandName;
+
+  // Sem lote, qualquer tipo de lote cai na mensagem geral.
+  if (type === 'category' && options.category) {
+    return `Olá! Acessei a categoria ${categoryLabel(options.category)} no site do ${brand} e gostaria de receber ajuda para encontrar lotes de meu interesse.`;
+  }
+  if (!lot || type === 'general' || type === 'category') {
+    return `Olá! Acessei o site do ${brand} e gostaria de falar com um atendente. Poderiam me ajudar?`;
+  }
+
+  const code = lotCode(lot);
+  const link = lotUrl(lot);
+  const demoNote = lot.demo ? ' (Observação: vi este lote como exemplo de demonstração do site.)' : '';
+  const where = lot.location ? `, localizado em ${lot.location}` : '';
+  const label = lot.title + where;
+  const codeText = code ? `código ${code}` : '';
+  const ref = sentence(`${lot.title}${code ? `, ${codeText}` : ''}`);
+
+  let text;
+  if (type === 'edital') {
+    text = sentence(
+      `Olá! Gostaria de consultar o edital e esclarecer dúvidas sobre o lote ${lot.title}${code ? ` (${codeText})` : ''},`,
+      `que encontrei no site do ${brand}.`,
+      `Link: ${link}`
+    );
+  } else if (type === 'visit') {
+    text = sentence(
+      `Olá! Tenho interesse no lote ${lot.title}${code ? ` (${codeText})` : ''}`,
+      'e gostaria de saber se há visitação disponível e quais são os procedimentos.',
+      `Link: ${link}`
+    );
+  } else if (REAL_ESTATE_CATEGORIES.includes(lot.category)) {
+    const kind = lot.category === 'terrenos' ? 'terreno' : 'imóvel';
+    text = sentence(
+      `Olá! Tenho interesse no ${kind} ${label}${code ? `, ${codeText}` : ''}, anunciado no site do ${brand}.`,
+      'Gostaria de saber mais sobre a localização, a documentação, o edital e as condições de participação.',
+      `Link: ${link}`
+    );
+  } else if (VEHICLE_CATEGORIES.includes(lot.category)) {
+    text = sentence(
+      `Olá! Tenho interesse no veículo ${lot.title}${code ? `, ${codeText}` : ''}, da categoria ${categoryLabel(lot.category)}, anunciado no site do ${brand}.`,
+      'Poderiam me informar as condições do lote, a documentação e os próximos passos?',
+      `Link: ${link}`
+    );
+  } else {
+    text = sentence(
+      `Olá! Acessei o site do ${brand} e tenho interesse no lote ${ref} (categoria ${categoryLabel(lot.category)}${lot.location ? `, ${lot.location}` : ''}).`,
+      'Gostaria de receber mais informações sobre as condições, o edital e os próximos passos.',
+      `Link do lote: ${link}`
+    );
+  }
+  return text + demoNote;
+}
+
+/** https://wa.me/NÚMERO?text=MENSAGEM-CODIFICADA */
+function whatsappUrl(options = {}) {
+  return `${WHATSAPP_BASE}${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsappMessage(options))}`;
 }
 
 let toastTimer = null;
@@ -335,13 +423,32 @@ function showToast(message) {
   }, 6000);
 }
 
-function contactWhatsapp(lot) {
+/**
+ * Configura um <a> como link de WhatsApp. Sem número configurado, o link
+ * não navega e avisa o visitante.
+ */
+function setWhatsappLink(anchor, options = {}) {
+  anchor.setAttribute('target', '_blank');
+  anchor.setAttribute('rel', 'noopener noreferrer');
   if (!isWhatsappConfigured()) {
-    showToast('O contato por WhatsApp ainda precisa ser configurado neste site.');
-    return;
+    anchor.setAttribute('href', '#contato');
+    anchor.addEventListener('click', (event) => {
+      event.preventDefault();
+      showToast('O contato por WhatsApp ainda precisa ser configurado neste site.');
+    });
+    return anchor;
   }
-  window.open(whatsappUrl(lot), '_blank', 'noopener');
+  anchor.setAttribute('href', whatsappUrl(options));
+  return anchor;
 }
+
+/** Cria um <a> de WhatsApp. */
+function whatsappLink(props, children, options) {
+  return setWhatsappLink(el('a', props, children), options);
+}
+
+/** Aviso exibido perto dos botões: o WhatsApp só abre a conversa. */
+const WA_NOTE = 'Ao clicar, o WhatsApp será aberto com uma mensagem pronta para você revisar e enviar. Nada é enviado automaticamente.';
 
 /* --------------------------------------------------------------------------
    6. CARDS E CATÁLOGO
@@ -379,10 +486,16 @@ function createCard(lot, index) {
   detailsBtn.setAttribute('aria-label', `Ver detalhes do ${lot.lot}: ${lot.title}`);
   detailsBtn.addEventListener('click', () => openDialog(lot));
 
-  const contactBtn = el('button', { type: 'button', class: 'btn btn-whatsapp btn-icon' }, [svgIcon('whatsapp')]);
-  contactBtn.setAttribute('aria-label', `Consultar o ${lot.lot} pelo WhatsApp`);
-  contactBtn.setAttribute('title', 'Consultar pelo WhatsApp');
-  contactBtn.addEventListener('click', () => contactWhatsapp(lot));
+  // Link real de WhatsApp, com a mensagem do lote deste card.
+  const contactBtn = whatsappLink(
+    {
+      class: 'btn btn-whatsapp btn-icon',
+      'aria-label': `Consultar o ${lot.lot} pelo WhatsApp (abre uma nova aba)`,
+      title: 'Consultar pelo WhatsApp',
+    },
+    [svgIcon('whatsapp')],
+    { type: 'lot', lot }
+  );
 
   const body = el('div', { class: 'lot-body' }, [
     el('div', { class: 'lot-status-row' }, [statusBadge(lot)]),
@@ -416,6 +529,20 @@ function getFilteredLots() {
   );
 }
 
+/** Link "falar sobre esta categoria": só aparece com uma categoria escolhida. */
+function updateCategoryHelp() {
+  const box = refs.categoryHelp;
+  if (state.category === ALL) {
+    box.hidden = true;
+    return;
+  }
+  const label = categoryLabel(state.category);
+  setWhatsappLink(refs.categoryHelpLink, { type: 'category', category: state.category });
+  refs.categoryHelpLink.setAttribute('aria-label', `Pedir ajuda sobre ${label} pelo WhatsApp (abre uma nova aba)`);
+  refs.categoryHelpText.textContent = label;
+  box.hidden = false;
+}
+
 function render() {
   // Catálogo sem nenhum lote cadastrado.
   if (LOTS.length === 0) {
@@ -424,11 +551,13 @@ function render() {
     refs.grid.replaceChildren();
     refs.emptyResults.hidden = true;
     refs.emptyCatalog.hidden = false;
+    refs.categoryHelp.hidden = true;
     return;
   }
 
   const lots = getFilteredLots();
   refs.grid.replaceChildren(...lots.map(createCard));
+  updateCategoryHelp();
   refs.emptyResults.hidden = lots.length > 0;
   refs.count.textContent = lots.length === 1 ? '1 lote encontrado' : `${lots.length} lotes encontrados`;
   syncCategoryButtons();
@@ -588,15 +717,20 @@ function openDialog(lot) {
 
   d.demo.hidden = !lot.demo;
 
+  // Botões de WhatsApp deste lote (a mensagem identifica o lote aberto).
+  setWhatsappLink(d.contact, { type: 'lot', lot });
+  setWhatsappLink(d.edital, { type: 'edital', lot });
+  setWhatsappLink(d.visit, { type: 'visit', lot });
+
   // Link do edital: só aparece quando fornecido para o lote.
   if (lot.documentUrl) {
     d.document.href = lot.documentUrl;
     d.document.hidden = false;
-    d.docNote.hidden = true;
+    d.edital.hidden = true;
   } else {
     d.document.removeAttribute('href');
     d.document.hidden = true;
-    d.docNote.hidden = false;
+    d.edital.hidden = false;
   }
 
   if (typeof d.root.showModal === 'function') d.root.showModal();
@@ -622,9 +756,6 @@ function setupDialog() {
   const root = refs.dialog.root;
 
   refs.dialog.close.addEventListener('click', closeDialog);
-  refs.dialog.contact.addEventListener('click', () => {
-    if (currentLot) contactWhatsapp(currentLot);
-  });
   // Esc fecha o <dialog> nativamente; este evento limpa o estado.
   root.addEventListener('close', onDialogClosed);
   // Clique no fundo escurecido (fora do painel) fecha o modal.
@@ -722,7 +853,7 @@ function setupFaq() {
 function contactEntries() {
   const entries = [];
   if (isWhatsappConfigured()) {
-    entries.push({ label: 'WhatsApp', text: formatPhone(WHATSAPP_NUMBER), href: whatsappUrl(null), external: true });
+    entries.push({ label: 'WhatsApp', text: WHATSAPP_DISPLAY, href: whatsappUrl({ type: 'general' }), external: true });
   }
   if (CONTACT.phone) {
     entries.push({ label: 'Telefone', text: formatPhone(CONTACT.phone), href: `tel:+${CONTACT.phone.replace(/\D/g, '')}` });
@@ -798,6 +929,9 @@ function init() {
   refs.locationField = document.getElementById('field-location');
   refs.clear = document.getElementById('clear-filters');
   refs.emptyClear = document.getElementById('empty-clear');
+  refs.categoryHelp = document.getElementById('category-help');
+  refs.categoryHelpLink = document.getElementById('category-help-link');
+  refs.categoryHelpText = document.getElementById('category-help-text');
   refs.dialog = {
     root: document.getElementById('lot-dialog'),
     close: document.getElementById('dialog-close'),
@@ -811,17 +945,16 @@ function init() {
     details: document.getElementById('dialog-details'),
     demo: document.getElementById('dialog-demo'),
     document: document.getElementById('dialog-document'),
-    docNote: document.getElementById('dialog-doc-note'),
     contact: document.getElementById('dialog-contact'),
+    edital: document.getElementById('dialog-edital'),
+    visit: document.getElementById('dialog-visit'),
   };
 
   document.getElementById('demo-banner').hidden = !SITE_CONFIG.demoMode;
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // Botões gerais de contato, sem lote específico.
-  document.querySelectorAll('[data-contact="general"]').forEach((btn) => {
-    btn.addEventListener('click', () => contactWhatsapp(null));
-  });
+  // Botões gerais de contato (cabeçalho, hero, contato, flutuante, etc.), sem lote específico.
+  document.querySelectorAll('[data-contact="general"]').forEach((link) => setWhatsappLink(link, { type: 'general' }));
 
   // Imagens estáticas do HTML também ganham o espaço reservado em caso de falha.
   document.querySelectorAll('img[data-fallback]').forEach(attachFallback);
